@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Env files (API keys)
+.env
+.env.*
+
+# Python packaging / build
+build/
+dist/
+*.egg-info/
+
+# Logs
+*.log
+
+# Streamlit cache
+.streamlit/cache/
+
+# Data
+data/*.db
+
+

@@ -6,6 +6,15 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, date
 from typing import Any, Dict, List, Optional, Tuple
 
+# Optional .env loader (so GEMINI_API_KEY in .env works in Streamlit)
+try:
+    from dotenv import load_dotenv  # type: ignore
+
+    load_dotenv()
+except Exception:
+    pass
+
+
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
@@ -408,27 +417,69 @@ def _detect_enroll_intent(user_text: str) -> bool:
 
 
 def generate_ai_reply(user_text: str) -> str:
-    """Generate a chatbot reply using keyword matching."""
-    text = (user_text or "").strip().lower()
-    if not text:
+    """Generate a chatbot reply.
+
+    Uses Gemini 2.0 Flash when GEMINI_API_KEY is configured; otherwise falls back
+    to the offline keyword-based responder.
+    """
+    prompt = (user_text or "").strip()
+    if not prompt:
         return "Please type a question and I’ll respond."
 
-    for topic, item in BUSINESS_KB.items():
+    # Optional Gemini integration (no required config for demo).
+    try:
+        gemini_api_key = os.getenv("GEMINI_API_KEY")
+        print("[Gemini] GEMINI_API_KEY present?", bool(gemini_api_key))
+        if gemini_api_key:
+            import google.generativeai as genai
+
+            genai.configure(api_key=gemini_api_key)
+            model = genai.GenerativeModel("gemini-2.0-flash")
+
+            system = (
+                "You are IntelliLead AI, a helpful admissions and course advisor. "
+                "Answer the user question clearly and concisely. "
+                "If the user asks about programs, fees, eligibility, duration, batch timings, "
+                "placement support, certification, refunds, or applying, respond directly. "
+                "If information is missing, suggest the user submits the lead form with their "
+                "department/program interest so the team can respond."
+            )
+
+            # Light lead-awareness: add helpful context based on the text.
+            extra = ""
+            if _detect_enroll_intent(prompt):
+                extra = "\n\nUser seems ready to enroll. Encourage them to submit the lead form."
+
+            response = model.generate_content(f"{system}\n\nUser question: {prompt}{extra}")
+            text_out = getattr(response, "text", None) or str(response)
+
+            persona_prefix = "Hi, I'm IntelliLead AI — your smart assistant. "
+            final = persona_prefix + text_out.strip()
+
+            return final
+    except Exception:
+        # If Gemini fails (missing key, network, etc.), use offline fallback.
+        pass
+
+    # Offline fallback
+    text = prompt.lower()
+    for _, item in BUSINESS_KB.items():
         if any(kw in text for kw in item["q_keywords"]):
             reply = item["answer"]
             break
     else:
         reply = (
-            "Thanks for your question. I can help with admissions, pricing, course structure, duration, batch timings, placement support, certification, and refund policy. "
+            "Thanks for your question. I can help with admissions, pricing, course structure, duration, "
+            "batch timings, placement support, certification, and refund policy. "
             "If you share your department/program interest via the lead form, I can tailor the next steps for you."
         )
 
     persona_prefix = "Hi, I'm IntelliLead AI — your smart assistant. "
-
-    if _detect_enroll_intent(user_text):
+    if _detect_enroll_intent(prompt):
         reply += " Ready to take the next step? Fill the lead form and our team will reach out within 24 hours."
 
     return persona_prefix + reply
+
 
 
 # -----------------------------

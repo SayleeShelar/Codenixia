@@ -28,9 +28,28 @@ streamlit run app.py
 - For public deployment, ensure the environment can write to a persistent volume if needed (SQLite works best when backed by platform storage).
 
 ## Notes about “free AI”
-This project includes a **fallback AI responder** that works without an API key. If you later add an LLM API key, you can replace the responder module.
+This project includes a **fallback AI responder** that works without an API key.
+
+### Optional: Enable Gemini (real LLM)
+1) Create a Gemini API key in **Google AI Studio**.
+2) Add it to your environment:
+- Either in `.env` as:
+  `GEMINI_API_KEY="YOUR_KEY_HERE"`
+- Or set it as a system environment variable before running Streamlit.
+
+If Gemini is not configured, the app automatically uses the offline keyword-based responder.
+
+> Note: `.env` is not committed. Copy `.env.example` to `.env` in your local setup.
+
+### (Optional) Quick Gemini verification
+When Gemini is enabled (key is set), the app will use Gemini and produce free-form answers instead of the canned keyword responses.
+If you run the app from a terminal, you should see a line like:
+`[Gemini] GEMINI_API_KEY present? True`
+
 
 ## Demo checklist (5–7 minutes)
+
+
 1. Open app, show Lead Capture form
 2. Submit a sample lead; show it appears in Admin page
 3. Show chatbot answering a business/course query
