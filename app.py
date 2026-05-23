@@ -73,7 +73,8 @@ def _brand_top_nav() -> None:
         )
 
     with right:
-        tabs = ["Dashboard", "Leads", "Chat", "Settings"]
+        tabs = ["Dashboard", "Leads", "Chat"]
+
 
         if "active_tab" not in st.session_state:
             st.session_state.active_tab = "Dashboard"
@@ -790,21 +791,14 @@ def render_admin_dashboard() -> None:
 
 
 def render_settings() -> None:
-    st.markdown(
-        """
-        <div class="bb-section">
-          <h3 style="margin:0 0 8px 0;">Settings</h3>
-          <div style="color:#cbd5e1; font-size:14px;">Coming soon</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
     st.info("Coming soon")
+
 
 
 # -----------------------------
 # Router
 # -----------------------------
+
 
 
 def main() -> None:
@@ -853,8 +847,7 @@ def main() -> None:
         if isinstance(lead_id, int):
             st.caption(f"Current lead context: #{lead_id}")
 
-    elif st.session_state.active_tab == "Settings":
-        render_settings()
+
 
 
 if __name__ == "__main__":
