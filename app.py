@@ -457,9 +457,11 @@ def generate_ai_reply(user_text: str) -> str:
             final = persona_prefix + text_out.strip()
 
             return final
-    except Exception:
+    except Exception as e:
         # If Gemini fails (missing key, network, etc.), use offline fallback.
+        print("[Gemini] Failed:", repr(e))
         pass
+
 
     # Offline fallback
     text = prompt.lower()
